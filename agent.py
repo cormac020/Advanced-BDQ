@@ -29,8 +29,10 @@ class QNetwork(nn.Module):
         feature = self.feature(x)
         actions = torch.stack([head(feature) for head in self.actions])
         value = self.value(feature)
-        maxa = actions.mean(-1).max(0)[0].unsqueeze(-1)
-        actions = actions + value - maxa
+        maxa = actions.max(-1)[0].unsqueeze(-1)
+        actions = actions - maxa
+        meana = actions.mean(0).mean(-1).unsqueeze(-1)
+        actions = actions - meana + value
         return actions
 
 

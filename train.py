@@ -22,7 +22,7 @@ parser.add_argument('--gamma', '-g', type=float, default=0.99, help='discounting
 parser.add_argument('--action_scale', '-a', type=int, default=25, help='discrete action scale (default: 25)')
 parser.add_argument('--env', '-e', type=str, default='BipedalWalker-v3', help='Environment (default: BipedalWalker-v3)')
 parser.add_argument('--load', '-l', type=str, default='no', help='load network name in ./model/')
-parser.add_argument('--trick', '-t', action='store_false', help='use tricks')
+parser.add_argument('--trick', '-t', action='store_true', help='use tricks')
 
 parser.add_argument('--save_interval', '-s', type=int, default=1000, help='interval to save model (default: 1000)')
 parser.add_argument('--print_interval', '-d', type=int, default=200, help='interval to print evaluation (default: 200)')
@@ -67,7 +67,7 @@ model_path = './model/' + env_name + '_' + str(action_scale) + '.pth'
 data_path = './data/' + env_name + '_' + str(action_scale)
 
 # use replay buffer
-memory = ReplayBuffer(100000, action_dim, device)
+memory = ReplayBuffer(10000, action_dim, device)
 # divide continuous action space into discrete actions, according to ACTION_SCALE
 real_actions = [np.linspace(env.action_space.low[i], env.action_space.high[i], action_scale)
                 for i in range(action_dim)]
@@ -126,7 +126,7 @@ for it in range(iteration):
             if n_epi % args.save_interval == 0:  # time to save model and data
                 torch.save(agent.state_dict(), model_path)
                 dataframe = pd.DataFrame({env_name: reward_list, 'time': time_list})  # save training data as csv file
-                dataframe.to_csv(data_path + '_reward.csv', index=False, sep=',')
+                dataframe.to_csv(data_path + str(args.trick) + '_reward.csv', index=False, sep=',')
             # update the progress bar
             pbar.set_postfix({
                 'episode':
@@ -138,7 +138,7 @@ for it in range(iteration):
 
 torch.save(agent.state_dict(), model_path)
 dataframe = pd.DataFrame({env_name: reward_list, 'time': time_list})  # save training data as csv file
-dataframe.to_csv(data_path + '_reward.csv', index=False, sep=',')
+dataframe.to_csv(data_path + str(args.trick) + '_reward.csv', index=False, sep=',')
 print('Training time in the aggregate:', time_list[-1])
 
 episodes_list = list(range(len(reward_list)))
@@ -146,5 +146,5 @@ plt.plot(episodes_list, reward_list)
 plt.xlabel('Episodes')
 plt.ylabel('Rewards')
 plt.title('BDQ on {}'.format(env_name))
-plt.savefig(data_path + '_reward.png')
+plt.savefig(data_path + str(args.trick) + '_reward.png')
 # plt.show()
