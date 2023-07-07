@@ -29,10 +29,21 @@ class QNetwork(nn.Module):
         feature = self.feature(x)
         actions = torch.stack([head(feature) for head in self.actions])
         value = self.value(feature)
-        maxa = actions.mean(-1).max(0)[0].unsqueeze(-1)
-        actions = actions - maxa + value
-        # maxmax = actions.max(0)[0].max(-1)[0].unsqueeze(-1)
-        # actions = actions - maxmax + value
+        # 1 mean max
+        # maxa = actions.mean(-1).max(0)[0].unsqueeze(-1)
+        # actions = actions - maxa + value
+
+        # 2 min max max
+        mina = actions.min(-1)[0].unsqueeze(-1)
+        actions = actions - mina
+        maxa = actions.max(0)[0].max(-1)[0].unsqueeze(-1)
+        actions = actions - maxa  + value
+
+        # 3 min mean max
+        # mina = actions.min(-1)[0].unsqueeze(-1)
+        # actions = actions - mina
+        # maxa = actions.mean(-1).max(0)[0].unsqueeze(-1)
+        # actions = actions - maxa  + value
         return actions
 
 
@@ -65,9 +76,10 @@ class BDQ(nn.Module):
 
         # select best actions from Q and calculate Q-values in target Q
         max_next_action = self.q(next_state).transpose(0, 1).max(-1, keepdim=True)[1]
-        max_q_values = self.target_q(next_state).transpose(0, 1)  # normal dqn
-        max_next_q_values = max_q_values.gather(2, max_next_action.long()).squeeze(-1)  # get q_values for next action
-        # max_next_q_values = max_q_values.max(-1, keepdim=True)[0].squeeze(-1)
+        next_q_values = self.target_q(next_state).transpose(0, 1)  # normal dqn
+        max_next_q_values = next_q_values.gather(2, max_next_action.long()).squeeze(-1)  # get q_values for next action
+        # next_q_values = self.target_q(next_state).transpose(0, 1)
+        # max_next_q_values = next_q_values.max(-1, keepdim=True)[0].squeeze(-1)
         q_target = (done_mask * gamma * max_next_q_values + reward)
 
         loss = F.mse_loss(q_values, q_target)

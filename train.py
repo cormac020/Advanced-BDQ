@@ -67,7 +67,7 @@ model_path = './model/' + env_name + '_' + str(action_scale) + '.pth'
 data_path = './data/' + env_name + '_' + str(action_scale)
 
 # use replay buffer
-memory = ReplayBuffer(10000, action_dim, device)
+memory = ReplayBuffer(100000, action_dim, device)
 # divide continuous action space into discrete actions, according to ACTION_SCALE
 real_actions = [np.linspace(env.action_space.low[i], env.action_space.high[i], action_scale)
                 for i in range(action_dim)]
@@ -126,7 +126,7 @@ for it in range(iteration):
             if n_epi % args.save_interval == 0:  # time to save model and data
                 torch.save(agent.state_dict(), model_path)
                 dataframe = pd.DataFrame({env_name: reward_list, 'time': time_list})  # save training data as csv file
-                dataframe.to_csv(data_path + str(args.trick) + '_reward.csv', index=False, sep=',')
+                dataframe.to_csv(data_path + '_reward.csv', index=False, sep=',')
             # update the progress bar
             pbar.set_postfix({
                 'episode':
@@ -138,7 +138,7 @@ for it in range(iteration):
 
 torch.save(agent.state_dict(), model_path)
 dataframe = pd.DataFrame({env_name: reward_list, 'time': time_list})  # save training data as csv file
-dataframe.to_csv(data_path + str(args.trick) + '_reward.csv', index=False, sep=',')
+dataframe.to_csv(data_path + '_reward.csv', index=False, sep=',')
 print('Training time in the aggregate:', time_list[-1])
 
 episodes_list = list(range(len(reward_list)))
@@ -146,5 +146,5 @@ plt.plot(episodes_list, reward_list)
 plt.xlabel('Episodes')
 plt.ylabel('Rewards')
 plt.title('BDQ on {}'.format(env_name))
-plt.savefig(data_path + str(args.trick) + '_reward.png')
+plt.savefig(data_path + '_reward.png')
 # plt.show()
