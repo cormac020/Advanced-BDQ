@@ -5,8 +5,8 @@ import random
 
 
 class ReplayBuffer:
-    def __init__(self, buffer_limit, action_dim, device):
-        self.buffer = collections.deque(maxlen=buffer_limit)
+    def __init__(self, action_dim, device):
+        self.buffer = collections.deque(maxlen=100000)
         self.action_dim = action_dim
         self.device = device
 

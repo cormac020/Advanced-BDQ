@@ -1,6 +1,7 @@
 /.idea
 /__pycache__
 /model
-/data*
+/data/*
+!/data/score.png
 /history
 *.bat

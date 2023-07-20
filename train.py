@@ -67,7 +67,7 @@ model_path = './model/' + env_name + '_' + str(action_scale) + '.pth'
 data_path = './data/' + env_name + '_' + str(action_scale)
 
 # use replay buffer
-memory = ReplayBuffer(100000, action_dim, device)
+memory = ReplayBuffer(action_dim, device)
 # divide continuous action space into discrete actions, according to ACTION_SCALE
 real_actions = [np.linspace(env.action_space.low[i], env.action_space.high[i], action_scale)
                 for i in range(action_dim)]

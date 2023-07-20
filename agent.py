@@ -8,21 +8,21 @@ class QNetwork(nn.Module):
     def __init__(self, state_dim: int, action_dim: int, action_scale: int):
         super(QNetwork, self).__init__()
         # shared state feature extraction layer
-        self.feature = nn.Sequential(nn.Linear(state_dim, 512),
+        self.feature = nn.Sequential(nn.Linear(state_dim, 256),
                                      nn.ReLU(),
-                                     nn.Linear(512, 256),
+                                     nn.Linear(256, 128),
                                      nn.ReLU()
                                      )
         # evaluate action advantages on each branch
-        self.actions = [nn.Sequential(nn.Linear(256, 128),
+        self.actions = [nn.Sequential(nn.Linear(128, 64),
                                       nn.ReLU(),
-                                      nn.Linear(128, action_scale)
+                                      nn.Linear(64, action_scale)
                                       ) for _ in range(action_dim)]
         self.actions = nn.ModuleList(self.actions)
         # module to calculate state value
-        self.value = nn.Sequential(nn.Linear(256, 128),
+        self.value = nn.Sequential(nn.Linear(128, 64),
                                    nn.ReLU(),
-                                   nn.Linear(128, 1)
+                                   nn.Linear(64, 1)
                                    )
 
     def forward(self, x):
