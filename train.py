@@ -52,11 +52,8 @@ action_dim = env.action_space.shape[0]
 print('observation space:', env.observation_space)
 print('action space:', env.action_space)
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-if device == 'cuda':
-    agent = BDQ(state_dim, action_dim, action_scale, learning_rate, device).cuda()
-else:
-    agent = BDQ(state_dim, action_dim, action_scale, learning_rate, device)
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+agent = BDQ(state_dim, action_dim, action_scale, learning_rate, device).to(device)
 
 # if specified a model, load it
 model_path = './model/' + env_name + '_' + args.load + '.pth'
@@ -139,7 +136,7 @@ for it in range(iteration):
 torch.save(agent.state_dict(), model_path)
 dataframe = pd.DataFrame({env_name: reward_list, 'time': time_list})  # save training data as csv file
 dataframe.to_csv(data_path + '_reward.csv', index=False, sep=',')
-print('Training time in the aggregate:', time_list[-1])
+print('Training time in total:', time_list[-1])
 
 episodes_list = list(range(len(reward_list)))
 plt.plot(episodes_list, reward_list)

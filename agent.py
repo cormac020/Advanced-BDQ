@@ -50,9 +50,10 @@ class QNetwork(nn.Module):
 class BDQ(nn.Module):
     def __init__(self, state_dim: int, action_dim: int, action_scale: int, learning_rate, device: str):
         super(BDQ, self).__init__()
-
+        self.device = device
         self.q = QNetwork(state_dim, action_dim, action_scale).to(device)
         self.target_q = QNetwork(state_dim, action_dim, action_scale).to(device)
+
         self.target_q.load_state_dict(self.q.state_dict())
         self.optimizer = optim.Adam([{'params': self.q.feature.parameters(), 'lr': learning_rate / action_dim},
                                      {'params': self.q.value.parameters(), 'lr': learning_rate / action_dim},
@@ -71,12 +72,12 @@ class BDQ(nn.Module):
         actions = torch.stack(actions).transpose(0, 1).unsqueeze(-1)
         done_mask = torch.abs(done_mask - 1)
 
-        q_values = self.q(state).transpose(0, 1)  # q_values for all possible actions
+        q_values = self.q(state.to(self.device)).transpose(0, 1)  # q_values for all possible actions
         q_values = q_values.gather(2, actions.long()).squeeze(-1)  # get q_values for current action
 
         # select best actions from Q and calculate Q-values in target Q; DDQN
-        max_next_action = self.q(next_state).transpose(0, 1).max(-1, keepdim=True)[1]
-        next_q_values = self.target_q(next_state).transpose(0, 1)
+        max_next_action = self.q(next_state.to(self.device)).transpose(0, 1).max(-1, keepdim=True)[1]
+        next_q_values = self.target_q(next_state.to(self.device)).transpose(0, 1)
         max_next_q_values = next_q_values.gather(2, max_next_action.long()).squeeze(-1)  # get q_values for next action
         
         # next_q_values = self.target_q(next_state).transpose(0, 1)  # normal dqn
@@ -87,7 +88,7 @@ class BDQ(nn.Module):
         loss = F.mse_loss(q_values, q_target)
 
         self.optimizer.zero_grad()
-        loss.backward(torch.ones_like(loss))
+        loss.backward(torch.ones_like(loss).to(self.device))
         self.optimizer.step()
 
         self.update_count += 1

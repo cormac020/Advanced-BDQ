@@ -43,11 +43,8 @@ print('observation space:', env.observation_space)
 print('action space:', env.action_space)
 print('action space limits:', env.action_space.low, env.action_space.high)
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-if device == 'cuda':
-    agent = BDQ(state_dim, action_dim, action_scale, 0, device).cuda()
-else:
-    agent = BDQ(state_dim, action_dim, action_scale, 0, device)
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+agent = BDQ(state_dim, action_dim, action_scale, 0, device).to(device)
 
 # if specified a model, load it
 model_path = './model/' + env_name + '_' + str(action_scale) + '.pth'
